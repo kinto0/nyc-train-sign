@@ -23,7 +23,7 @@ let i = 0
 // Time in minutes it takes to walk to the train station
 // Don't show trains that are shorter than 9 minutes because
 // we can't walk there to catch it fast enough
-const minimumMins = 9
+const minimumMins = 0
 
 const getData = async url => {
   try {
