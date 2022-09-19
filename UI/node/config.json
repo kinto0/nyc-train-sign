@@ -1,10 +1,10 @@
 {
-  "stationId": 249,
-  "direction": "N",
-  "stationName": "Kingston",
-  "trainName": "3",
+  "stationId": 641,
+  "direction": "S",
+  "stationName": "72nd St",
+  "trainName": "Q",
   "textColor": [0, 110, 0],
-  "circleColor": [110, 0, 0],
+  "circleColor": [255, 205, 0],
   "circleNumberColor": [0, 0, 0],
   "loadingTextColor": [255, 255, 255]
 }
