@@ -13,7 +13,7 @@ const {
   loadingTextColor
 } = require('./config.json');
 const matrix = new LedMatrix(32, 64, 1, 1, 100, 'adafruit-hat')
-const url = `http://localhost:8080/api/schedule/${stationId}/${trainName}/${direction}`
+const url = `http://localhost:8080/api/schedule/nqrw/Q03S`
 const fontPath = path.join(__dirname, '../fonts/tom-thumb.bdf')
 
 let loadInterval, drawInterval
@@ -39,8 +39,8 @@ const getData = async url => {
 }
 
 getTrainMins = (times) => {
-  const minsArr = times.map(o => {
-    return o.relativeTime
+  const minsArr = times["S"].map(o => {
+    return o.arrivalTime
   })
   return minsArr
 }
@@ -76,31 +76,37 @@ drawLoading = () => {
 
 drawTrainCircle = (x, y, color) => {
   // Draw circle with lines
-  matrix.drawLine(x+2, y+0, x+6, y+0, color)
-  matrix.drawLine(x+1, y+1, x+7, y+1, color)
-  matrix.drawLine(x+0, y+2, x+8, y+2, color)
-  matrix.drawLine(x+0, y+3, x+8, y+3, color)
-  matrix.drawLine(x+0, y+4, x+8, y+4, color)
-  matrix.drawLine(x+0, y+5, x+8, y+5, color)
-  matrix.drawLine(x+0, y+6, x+8, y+6, color)
-  matrix.drawLine(x+1, y+7, x+7, y+7, color)
-  matrix.drawLine(x+2, y+8, x+6, y+8, color)
+  matrix.drawLine(x+2, y+0, x+6, y+0, ...color)
+  matrix.drawLine(x+1, y+1, x+7, y+1, ...color)
+  matrix.drawLine(x+0, y+2, x+8, y+2, ...color)
+  matrix.drawLine(x+0, y+3, x+8, y+3, ...color)
+  matrix.drawLine(x+0, y+4, x+8, y+4, ...color)
+  matrix.drawLine(x+0, y+5, x+8, y+5, ...color)
+  matrix.drawLine(x+0, y+6, x+8, y+6, ...color)
+  matrix.drawLine(x+1, y+7, x+7, y+7, ...color)
+  matrix.drawLine(x+2, y+8, x+6, y+8, ...color)
 }
 
+getMinutesUntilEpochTime = (epochTime) => {
+  date = new Date(epochTime*1000)
+  difference = date - new Date()
+  return parseInt(difference / 1000 / 60)
+}
 drawRows = (minsTrain1, minsTrain2) => {
   matrix.clear()
-  minsTrain1 = minsTrain1.toString()
-  minsTrain2 = minsTrain2.toString()
+  minsTrain1 = getMinutesUntilEpochTime(minsTrain1).toString()
+  minsTrain2 = getMinutesUntilEpochTime(minsTrain2).toString()
 
   // Top line
-  drawTrainCircle(2, 4, ...circleColor)
+  drawTrainCircle(2, 4, circleColor)
   matrix.drawText(5, 7, trainName, fontPath, ...circleNumberColor)
-  matrix.drawText(14, 7, stationName, fontPath, ...textColor)
-  matrix.drawText(47, 7, minsTrain1, fontPath, ...textColor)
+  matrix.drawText(14, 7, "72nd St", fontPath, ...textColor)
+  console.log(minsTrain1);
+  matrix.drawText(46, 7, minsTrain1, fontPath, ...textColor)
   matrix.drawText(54, 7, "min", fontPath, ...textColor)
 
   // Bottom line
-  drawTrainCircle(2, 19, ...circleColor)
+  drawTrainCircle(2, 19, circleColor)
   matrix.drawText(5, 22, trainName, fontPath, ...circleNumberColor)
   matrix.drawText(14, 22, stationName, fontPath, ...textColor)
   matrix.drawText(47, 22, minsTrain2, fontPath, ...textColor)
@@ -119,7 +125,8 @@ drawCanvas = async () => {
         clearInterval(loadInterval)
         let timesArr = getTrainMins(minsArr)
             timesArr = timesArr.filter(x => x >= minimumMins)
-        drawRows(...timesArr)
+        console.log(timesArr)
+	drawRows(...timesArr)
       }
   } catch (e) {
       console.log(e)

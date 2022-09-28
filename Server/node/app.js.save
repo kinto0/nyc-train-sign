@@ -1,9 +1,7 @@
-require('dotenv').config()
-
 // MTA setup
 const Mta = require('mta-gtfs')
 const mta = new Mta({
-  key: process.env.MTA_KEY,
+  key: 'zQJamfZjCRayWxJ1b1QJm89QQgBTGxq4kxEQxbVe',
   feed_id: 1
 })
 
@@ -53,9 +51,9 @@ router.route('/schedule')
     res.json({ message: 'A station ID is required as a parameter to retrieve a schedule. Ex: /api/schedule/249'})
   })
 
-router.route('/schedule/:line/:id')
+router.route('/schedule/:id')
 	.get(async (req, res ) => {
-    const result = await mta.schedule(req.params.id, req.params.line)
+    const result = await mta.schedule(req.params.id)
     res.send(result.schedule[req.params.id])
   })
 
