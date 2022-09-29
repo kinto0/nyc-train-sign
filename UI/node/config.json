@@ -1,10 +1,16 @@
 {
-  "stationId": 641,
   "direction": "S",
-  "stationName": "72nd St",
+  "stationName": "72",
   "trainName": "Q",
+  "direction2": "S",
+  "stationName2": "68",
+  "trainName2": "6",
   "textColor": [0, 110, 0],
   "circleColor": [255, 205, 0],
+  "circleColor2": [0, 147, 61],
   "circleNumberColor": [0, 0, 0],
-  "loadingTextColor": [255, 255, 255]
+  "circleNumberColor2": [0, 0, 0],
+  "loadingTextColor": [255, 255, 255],
+  "url": "http://localhost:8080/api/schedule/nqrw/Q03S",
+  "url2": "http://localhost:8080/api/schedule/nyct/628S"
 }

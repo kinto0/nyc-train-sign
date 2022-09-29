@@ -10,10 +10,11 @@ const {
   textColor,
   circleColor,
   circleNumberColor,
-  loadingTextColor
+  loadingTextColor,
+  url,
+  url2
 } = require('./config.json');
 const matrix = new LedMatrix(32, 64, 1, 1, 100, 'adafruit-hat')
-const url = `http://localhost:8080/api/schedule/nqrw/Q03S`
 const fontPath = path.join(__dirname, '../fonts/tom-thumb.bdf')
 
 let loadInterval, drawInterval
@@ -23,13 +24,15 @@ let i = 0
 // Time in minutes it takes to walk to the train station
 // Don't show trains that are shorter than 9 minutes because
 // we can't walk there to catch it fast enough
-const minimumMins = 0
+const minimumMins = 1
 
-const getData = async url => {
+const getData = async (url, url2) => {
   try {
     loading = true
-    const response = await axios.get(url)
-    const data = response.data
+    console.log("getting data: " + url + " " + url2)
+    const responses = await Promise.all([axios.get(url), axios.get(url2)])
+    const data = response.map(d => d.data)
+    console.log("data: " + data)
     loading = false
     return data
   } catch (error) {
@@ -92,23 +95,24 @@ getMinutesUntilEpochTime = (epochTime) => {
   difference = date - new Date()
   return parseInt(difference / 1000 / 60)
 }
-drawRows = (minsTrain1, minsTrain2) => {
+drawRows = (msTrain1, msTrain2) => {
   matrix.clear()
-  minsTrain1 = getMinutesUntilEpochTime(minsTrain1).toString()
-  minsTrain2 = getMinutesUntilEpochTime(minsTrain2).toString()
+  minsTrain1 = msTrain1.map(x => getMinutesUntilEpochTime(x).toString()).join(",")
 
-  // Top line
-  drawTrainCircle(2, 4, circleColor)
-  matrix.drawText(5, 7, trainName, fontPath, ...circleNumberColor)
-  matrix.drawText(14, 7, "72nd St", fontPath, ...textColor)
+  minsTrain2 = msTrain2.map(x => getMinutesUntilEpochTime(x).toString()).join(",")
+
+ // Top line
+  drawTrainCircle(2, 4, circleColor1)
+  matrix.drawText(5, 7, trainName2, fontPath, ...circleNumberColor)
+  matrix.drawText(14, 7, "72", fontPath, ...textColor)
   console.log(minsTrain1);
-  matrix.drawText(46, 7, minsTrain1, fontPath, ...textColor)
+  matrix.drawText(30, 7, minsTrain1, fontPath, ...textColor)
   matrix.drawText(54, 7, "min", fontPath, ...textColor)
 
   // Bottom line
-  drawTrainCircle(2, 19, circleColor)
-  matrix.drawText(5, 22, trainName, fontPath, ...circleNumberColor)
-  matrix.drawText(14, 22, stationName, fontPath, ...textColor)
+  drawTrainCircle(2, 19, circleColor2)
+  matrix.drawText(5, 22, trainName2, fontPath, ...circleNumberColor)
+  matrix.drawText(14, 22, "68", fontPath, ...textColor)
   matrix.drawText(47, 22, minsTrain2, fontPath, ...textColor)
   matrix.drawText(54, 22, "min", fontPath, ...textColor)
 
@@ -120,13 +124,20 @@ drawRows = (minsTrain1, minsTrain2) => {
 
 drawCanvas = async () => {
   try {
-      const minsArr = await getData(url)
-      if (minsArr) {
+      console.log("about to get data")
+      const arrs = await getData(url, url2)
+      const msArr = arrs[0]
+      const msArr2 = arrs[1]
+      console.log("got data")
+      if (msArr && msArr2) {
         clearInterval(loadInterval)
-        let timesArr = getTrainMins(minsArr)
-            timesArr = timesArr.filter(x => x >= minimumMins)
-        console.log(timesArr)
-	drawRows(...timesArr)
+        let timesArr1 = getTrainMins(msArr)
+        timesArr1 = timesArr1.filter(x => x >= minimumMins)
+        let timesArr2 = getTrainMins(msArr2)
+        timesArr2 = timesArr1.filter(x => x >= minimumMins)
+        console.log(timesArr1)
+        console.log(timesArr2)
+	drawRows(timesArr1.slice(0, 2), timesArr2.slice(0, 2))
       }
   } catch (e) {
       console.log(e)
