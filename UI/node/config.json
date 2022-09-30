@@ -13,6 +13,8 @@
   "loadingTextColor": [255, 255, 255],
   "stop1Id": "Q03S",
   "stop1Line": "nqrw",
+  "stop1Direction": "S",
   "stop2Id": "628S",
-  "stop2Line": ""
+  "stop2Line": "",
+  "stop2Direction": "S"
 }

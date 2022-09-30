@@ -4,17 +4,21 @@ const path = require('path')
 const axios = require("axios")
 const {
   trainName,
+  trainName2,
   stationName,
   direction,
   stationId,
   textColor,
   circleColor,
+  circleColor2,
   circleNumberColor,
   loadingTextColor,
   stop1Id,
   stop1Line,
+  stop1Direction,
   stop2Id,
-  stop2Line
+  stop2Line,
+  stop2Direction
 } = require('./config.json');
 const matrix = new LedMatrix(32, 64, 1, 1, 100, 'adafruit-hat')
 const fontPath = path.join(__dirname, '../fonts/tom-thumb.bdf')
@@ -38,9 +42,10 @@ const getData = async () => {
   try {
     loading = true
     const [train1, train2] = await Promise.all([mta.schedule(stop1Id, stop1Line), mta.schedule(stop2Id, stop2Line)])
-    const data = train1.map(d => d.data)
-    console.log("data: " + data)
-    const data2 = train2.map(d => d.data)
+    const data = train1.schedule[stop1Id][stop1Direction]
+    const data2 = train2.schedule[stop2Id][stop2Direction]
+    console.log(data)
+    console.log(data2)
     loading = false
     return [data, data2]
   } catch (error) {
@@ -51,7 +56,7 @@ const getData = async () => {
 }
 
 getTrainMins = (times) => {
-  const minsArr = times["S"].map(o => {
+  const minsArr = times.map(o => {
     return o.arrivalTime
   })
   return minsArr
@@ -111,18 +116,17 @@ drawRows = (msTrain1, msTrain2) => {
   minsTrain2 = msTrain2.map(x => getMinutesUntilEpochTime(x).toString()).join(",")
 
  // Top line
-  drawTrainCircle(2, 4, circleColor1)
-  matrix.drawText(5, 7, trainName2, fontPath, ...circleNumberColor)
+  drawTrainCircle(2, 4, circleColor)
+  matrix.drawText(5, 7, trainName, fontPath, ...circleNumberColor)
   matrix.drawText(14, 7, "72", fontPath, ...textColor)
-  console.log(minsTrain1);
-  matrix.drawText(30, 7, minsTrain1, fontPath, ...textColor)
+  matrix.drawText(29, 7, minsTrain1, fontPath, ...textColor)
   matrix.drawText(54, 7, "min", fontPath, ...textColor)
 
   // Bottom line
   drawTrainCircle(2, 19, circleColor2)
   matrix.drawText(5, 22, trainName2, fontPath, ...circleNumberColor)
   matrix.drawText(14, 22, "68", fontPath, ...textColor)
-  matrix.drawText(47, 22, minsTrain2, fontPath, ...textColor)
+  matrix.drawText(29, 22, minsTrain2, fontPath, ...textColor)
   matrix.drawText(54, 22, "min", fontPath, ...textColor)
 
 
@@ -137,16 +141,15 @@ drawCanvas = async () => {
       const arrs = await getData()
       const msArr = arrs[0]
       const msArr2 = arrs[1]
-      console.log("got data")
       if (msArr && msArr2) {
         clearInterval(loadInterval)
         let timesArr1 = getTrainMins(msArr)
         timesArr1 = timesArr1.filter(x => x >= minimumMins)
         let timesArr2 = getTrainMins(msArr2)
-        timesArr2 = timesArr1.filter(x => x >= minimumMins)
+        timesArr2 = timesArr2.filter(x => x >= minimumMins)
         console.log(timesArr1)
         console.log(timesArr2)
-	drawRows(timesArr1.slice(0, 2), timesArr2.slice(0, 2))
+	drawRows(timesArr1.slice(0, 3), timesArr2.slice(0, 3))
       }
   } catch (e) {
       console.log(e)
