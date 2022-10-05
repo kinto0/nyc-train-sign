@@ -36,7 +36,7 @@ let i = 0
 // Time in minutes it takes to walk to the train station
 // Don't show trains that are shorter than 9 minutes because
 // we can't walk there to catch it fast enough
-const minimumMins = 1
+const minimumMins = 3
 
 const getData = async () => {
   try {
@@ -57,38 +57,9 @@ const getData = async () => {
 
 getTrainMins = (times) => {
   const minsArr = times.map(o => {
-    return o.arrivalTime
+    return getMinutesUntilEpochTime(o.arrivalTime)
   })
   return minsArr
-}
-
-drawLoading = () => {
-  switch(i) {
-    case (0):
-      matrix.clear()
-      matrix.drawText(16, 14, "Loading", fontPath, ...loadingTextColor)
-      matrix.update()
-      i = 1
-      break;
-    case (1):
-      matrix.clear()
-      matrix.drawText(16, 14, "Loading.", fontPath, ...loadingTextColor)
-      matrix.update()
-      i = 2
-      break;
-    case (2):
-      matrix.clear()
-      matrix.drawText(16, 14, "Loading..", fontPath, ...loadingTextColor)
-      matrix.update()
-      i = 3
-      break;
-    case (3):
-    matrix.clear()
-      matrix.drawText(16, 14, "Loading...", fontPath, ...loadingTextColor)
-      matrix.update()
-      i = 0
-      break;
-  }
 }
 
 drawTrainCircle = (x, y, color) => {
@@ -104,30 +75,38 @@ drawTrainCircle = (x, y, color) => {
   matrix.drawLine(x+2, y+8, x+6, y+8, ...color)
 }
 
+drawDownArrow = (x, y, color) => {
+  matrix.drawLine(x+1, y+0, x+1, y+4, ...color)
+  matrix.drawLine(x, y+3, x+2, y+3, ...color)
+}
+
 getMinutesUntilEpochTime = (epochTime) => {
   date = new Date(epochTime*1000)
   difference = date - new Date()
   return parseInt(difference / 1000 / 60)
 }
+
 drawRows = (msTrain1, msTrain2) => {
   matrix.clear()
-  minsTrain1 = msTrain1.map(x => getMinutesUntilEpochTime(x).toString()).join(",")
+  minsTrain1 = msTrain1.map(x => x.toString()).join(",")
 
-  minsTrain2 = msTrain2.map(x => getMinutesUntilEpochTime(x).toString()).join(",")
+  minsTrain2 = msTrain2.map(x => x.toString()).join(",")
 
  // Top line
   drawTrainCircle(2, 4, circleColor)
+  // Color q corner due to aliasing
+  matrix.setPixel(6, 10, ...circleColor)
   matrix.drawText(5, 7, trainName, fontPath, ...circleNumberColor)
   matrix.drawText(14, 7, "72", fontPath, ...textColor)
-  matrix.drawText(29, 7, minsTrain1, fontPath, ...textColor)
-  matrix.drawText(54, 7, "min", fontPath, ...textColor)
+  drawDownArrow(22, 6, textColor)
+  matrix.drawText(33, 7, minsTrain1, fontPath, ...textColor)
 
   // Bottom line
   drawTrainCircle(2, 19, circleColor2)
   matrix.drawText(5, 22, trainName2, fontPath, ...circleNumberColor)
   matrix.drawText(14, 22, "68", fontPath, ...textColor)
-  matrix.drawText(29, 22, minsTrain2, fontPath, ...textColor)
-  matrix.drawText(54, 22, "min", fontPath, ...textColor)
+  drawDownArrow(22, 21, textColor)
+  matrix.drawText(33, 22, minsTrain2, fontPath, ...textColor)
 
 
   console.log(`${stationId} ${stationName} ${minsTrain1} min / ${stationId} ${stationName} ${minsTrain2} min`)
@@ -138,17 +117,11 @@ drawRows = (msTrain1, msTrain2) => {
 drawCanvas = async () => {
   try {
       console.log("about to get data")
-      const arrs = await getData()
-      const msArr = arrs[0]
-      const msArr2 = arrs[1]
+      const [msArr, msArr2] = await getData()
       if (msArr && msArr2) {
         clearInterval(loadInterval)
-        let timesArr1 = getTrainMins(msArr)
-        timesArr1 = timesArr1.filter(x => x >= minimumMins)
-        let timesArr2 = getTrainMins(msArr2)
-        timesArr2 = timesArr2.filter(x => x >= minimumMins)
-        console.log(timesArr1)
-        console.log(timesArr2)
+        let timesArr1 = getTrainMins(msArr).filter(x => x >= minimumMins)
+        let timesArr2 = getTrainMins(msArr2).filter(x => x >= minimumMins)
 	drawRows(timesArr1.slice(0, 3), timesArr2.slice(0, 3))
       }
   } catch (e) {
@@ -157,12 +130,8 @@ drawCanvas = async () => {
 }
 
 const init = () => {
-  console.log('Init')
-  console.log('Loading...')
-  loadInterval = setInterval(drawLoading, 350)
-
   drawCanvas()
-  drawInterval = setInterval(drawCanvas, 60000)
+  drawInterval = setInterval(drawCanvas, 30000)
 }
 
 init()
