@@ -42,6 +42,13 @@ const getData = async () => {
   try {
     loading = true
     const [train1, train2] = await Promise.all([mta.schedule(stop1Id, stop1Line), mta.schedule(stop2Id, stop2Line)])
+    // fill with empty data incase null (because node 10 doesn't support optional chaining)
+    if (train1.schedule == undefined) { 
+        train1.schedule = {[stop1Id]: {[stop1Direction]: []}}
+    }
+    if (train2.schedule == undefined) { 
+        train2.schedule = {[stop2Id]: {[stop2Direction]: []}}
+    }
     const data = train1.schedule[stop1Id][stop1Direction]
     const data2 = train2.schedule[stop2Id][stop2Direction]
     console.log(data)
